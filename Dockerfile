@@ -8,6 +8,6 @@ RUN cargo build --release
 
 RUN cargo install --path .
 
-EXPOSE 3550
+EXPOSE 5672
 
 CMD ["/usr/local/cargo/bin/worker-mq"]
