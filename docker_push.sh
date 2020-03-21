@@ -1,15 +1,16 @@
 #!/bin/bash -e
 
 REGISTRY_URL=docker.io
+DOCKER_REPO=brunoribca/worker-mq
 TARGET_IMAGE="${REGISTRY_URL}/${DOCKER_REPO}"
-VERSION=$(cat Cargo.toml | grep version | grep -Eo "(\d+\.)+\d+")
+VERSION=$(cat Cargo.toml | grep version)
 echo $VERSION
 TARGET_IMAGE_VERSIONED="${TARGET_IMAGE}:${VERSION}"
 
 # Push image to docker hub
 ###################
 
-docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASS}
+docker login -u brunoribca -p a5de0edd-2370-4dd1-9cbe-63f6bf40be0f
 # update latest version
 docker tag ${DOCKER_REPO} ${TARGET_IMAGE_VERSIONED}
 docker push ${TARGET_IMAGE_VERSIONED}
