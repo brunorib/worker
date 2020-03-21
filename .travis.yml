@@ -1,0 +1,21 @@
+language: rust
+dist: trusty # still in beta, but required for the prebuilt TF binaries
+
+cache:
+  cargo: true
+  
+services:
+- docker
+
+env:
+  global:
+    DOCKER_REPO=brunoribca/worker-mq
+
+script:
+- docker build -t $DOCKER_REPO .
+
+deploy:
+  provider: script
+  script: bash docker_push.sh
+  on:
+    branch: master
