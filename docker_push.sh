@@ -9,7 +9,7 @@ TARGET_IMAGE_VERSIONED="${TARGET_IMAGE}:${VERSION}"
 # Push image to docker hub
 ###################
 
-docker login -u brunoribca -p a5de0edd-2370-4dd1-9cbe-63f6bf40be0f
+docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASS}
 # update latest version
 docker tag ${DOCKER_REPO} ${TARGET_IMAGE_VERSIONED}
 docker push ${TARGET_IMAGE_VERSIONED}
