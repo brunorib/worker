@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 REGISTRY_URL=docker.io
-DOCKER_REPO=brunoribca/worker-mq
 TARGET_IMAGE="${REGISTRY_URL}/${DOCKER_REPO}"
 VERSION=$(cat Cargo.toml | grep version | sed -E 's/.*"(.*)"/\1/g')
 echo $VERSION
