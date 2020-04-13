@@ -1,32 +1,31 @@
-extern crate amiquip;
-use amiquip::{Connection, ConsumerMessage, ConsumerOptions, QueueDeclareOptions, Result};
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_big_array;
 
-fn main() -> Result<()> {
-    println!("Starting new worker");
-    
-    // Open connection.
-    let mut connection = Connection::insecure_open("amqp://guest:guest@localhost:5672")?;
-    let channel = connection.open_channel(None)?;
+mod client;
+mod key_store;
+mod signer;
+mod message_controller;
+mod worker;
+mod config;
+mod commons;
 
-    let queue = channel.queue_declare("task-queue", QueueDeclareOptions::default())?;
+use env_logger;
+use log::{error, info};
+use openssl::pkcs12::ParsedPkcs12;
+use config::Config;
 
-    // Start a consumer.
-    let consumer = queue.consume(ConsumerOptions::default())?;
-    println!("Waiting for messages. Press Ctrl-C to exit.");
+fn main() {
+    let config: Config = Config::new().unwrap();
+    let keystore: ParsedPkcs12 = key_store::read_pkcs12(config.keystore_path.clone(), config.keystore_pass.clone());
+    env_logger::init();
 
-    for (i, message) in consumer.receiver().iter().enumerate() {
-        match message {
-            ConsumerMessage::Delivery(delivery) => {
-                let body = String::from_utf8_lossy(&delivery.body);
-                println!("({:>3}) Received [{}]", i, body);
-                consumer.ack(delivery)?;
-            }
-            other => {
-                println!("Consumer ended: {:?}", other);
-                break;
-            }
-        }
+    let result = worker::listen(config, &keystore);
+    match result {
+        Ok(_v) => info!("good"),
+        Err(e) => error!("{}", e),
     }
-
-    connection.close()
 }
