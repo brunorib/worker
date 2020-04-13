@@ -1,4 +1,5 @@
 use std::env;
+extern crate dotenv;
 
 pub struct Config {
     pub rabbitmq_url: String,
@@ -8,10 +9,11 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Result<Config, &'static str> {
+        dotenv::dotenv().expect("Failed to read .env file");
         let rabbitmq_url = env::var("RABBIT_MQ_URL").unwrap();
         let keystore_path = env::var("KEYSTORE_PATH").unwrap();
         let keystore_pass = env::var("KEYSTORE_PASS").unwrap();
-
+        
         Ok(Config { rabbitmq_url, keystore_path, keystore_pass })
     }
 }

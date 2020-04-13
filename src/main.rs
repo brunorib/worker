@@ -19,13 +19,15 @@ use openssl::pkcs12::ParsedPkcs12;
 use config::Config;
 
 fn main() {
-    let config: Config = Config::new().unwrap();
-    let keystore: ParsedPkcs12 = key_store::read_pkcs12(config.keystore_path.clone(), config.keystore_pass.clone());
     env_logger::init();
+
+    let config: Config = Config::new().unwrap();
+    info!("Successfully read env variables");
+    let keystore: ParsedPkcs12 = key_store::read_pkcs12(config.keystore_path.clone(), config.keystore_pass.clone());
 
     let result = worker::listen(config, &keystore);
     match result {
-        Ok(_v) => info!("good"),
+        Ok(_v) => info!("Service stopped"),
         Err(e) => error!("{}", e),
     }
 }

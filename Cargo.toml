@@ -18,3 +18,4 @@ openssl = "0.10.29"
 num-traits = "0.2.6"
 num-integer = "0.1.42"
 num-bigint = { version = "0.2.6", features = ["serde"] }
+dotenv = "0.15.0"
