@@ -3,6 +3,7 @@
 REGISTRY_URL=docker.io
 TARGET_IMAGE="${REGISTRY_URL}/${DOCKER_REPO}"
 VERSION=$(cat Cargo.toml | grep version | sed -E 's/.*"(.*)"/\1/g')
+echo $VERSION
 TARGET_IMAGE_VERSIONED="${TARGET_IMAGE}:${VERSION}"
 
 # Push image to docker hub
