@@ -17,8 +17,9 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
             info!("Validating commitments...");
             let commitments: CommitInfoVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
             
+            let rsa_key = keystore.cert.public_key().unwrap().rsa().unwrap();
             info!("Checking commitments...");
-            if check_fair(&commitments) {
+            if check_fair(&commitments, rsa_key) {
                 info!("Commitments checked. Signing blind message...");
                 response = serde_json::to_string(&sign(&commitments.to_blind_sign, keystore)).unwrap();
             } else {

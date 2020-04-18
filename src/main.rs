@@ -2,10 +2,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
-#[macro_use]
-extern crate serde_big_array;
 
-mod client;
 mod key_store;
 mod signer;
 mod message_controller;
