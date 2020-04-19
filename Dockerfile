@@ -8,4 +8,4 @@ RUN cargo build --release
 
 RUN cargo install --path .
 
-CMD ["/usr/local/cargo/bin/worker-mq"]
+CMD ["RUST_LOG=info /usr/local/cargo/bin/worker-mq"]
