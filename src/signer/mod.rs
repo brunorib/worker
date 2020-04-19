@@ -1,3 +1,5 @@
+extern crate base64;
+
 use openssl::sha::Sha256;
 use openssl::pkcs12::ParsedPkcs12;
 use openssl::sign::Signer;
@@ -22,29 +24,30 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
         let elem = &info[i];
 
         let mut hasher: Sha256 = Sha256::new();
-        let to_hash: String = elem.u.clone() + CONCAT + &elem.v;
+        let to_hash: String = elem.amount.clone() + CONCAT + &elem.id;
         hasher.update(&to_hash.as_bytes());
 
         let output_hash = BigNum::from_slice(&hasher.finish()).unwrap();
 
         let mut m: BigNum = BigNum::new().unwrap();
         let mut ctx = BigNumContext::new().unwrap();
-        let r: BigNum = BigNum::from_slice(&elem.r).unwrap();
+        let r: BigNum = BigNum::from_slice(&base64::decode(&elem.blinding).unwrap()).unwrap();
         m.exp(&r, e, &mut ctx).unwrap();
         let mut m_mod: BigNum = BigNum::new().unwrap();
         m_mod.mod_mul(&m, &output_hash, n, &mut ctx).unwrap();
 
-        if m_mod != BigNum::from_slice(&m_to_verify[i]).unwrap() {
+        if m_mod != BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap() {
             return false;
         }
     }
     true
 }
 
-pub fn sign(blinded: &Vec<u8>, keystore: &ParsedPkcs12) -> BlindSignature {
+pub fn sign(blinded: &String, keystore: &ParsedPkcs12) -> BlindSignature {
     let mut signer: Signer = Signer::new_without_digest(&keystore.pkey).unwrap();
-    signer.update(&blinded).unwrap();
+    
+    signer.update(&base64::decode(blinded).unwrap()).unwrap();
     BlindSignature {
-        blind_signature: signer.sign_to_vec().unwrap()
+        blind_signature: base64::encode(signer.sign_to_vec().unwrap())
     }
 }

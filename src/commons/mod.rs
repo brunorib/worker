@@ -1,22 +1,21 @@
 pub const CONCAT: &str = "|";
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct CommitInfoVerify {
-    pub index: usize,
-    pub r: Vec<u8>,
-    pub u: String,
-    pub v: String
+pub struct AnswerInfo {
+    pub blinding: String,
+    pub amount: String,
+    pub id: String
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CommitInfoVerifyPayload {
-    pub to_blind_sign: Vec<u8>,
-    pub to_verify: Vec<CommitInfoVerify>,
-    pub m_commitments: Vec<Vec<u8>>
+    pub to_blind_sign: String,
+    pub to_verify: Vec<AnswerInfo>,
+    pub m_commitments: Vec<String>
 }
 
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct BlindSignature {
-    pub blind_signature: Vec<u8>,
+    pub blind_signature: String,
 }
