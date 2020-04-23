@@ -14,7 +14,7 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
     let response;
     match message_type {
         "checkFair" => {
-            info!("Validating commitments...");
+            info!("Validating commitments...\n{}", input[PAYLOAD]);
             let commitments: CommitInfoVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
             
             let rsa_key = keystore.cert.public_key().unwrap().rsa().unwrap();

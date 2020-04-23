@@ -41,6 +41,7 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
             error!("{} != {}", m_mod, calculated);
             return false;
         }
+        info!("Succesfully verified commitment")
     }
     true
 }
