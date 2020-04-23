@@ -6,7 +6,7 @@ use openssl::sign::Signer;
 use openssl::rsa::Rsa;
 use openssl::pkey::Public;
 use openssl::bn::{BigNum, BigNumContext};
-use log::{info, error};
+use log::{error};
 
 use crate::commons::*;
 
@@ -29,23 +29,18 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
 
         let output_hash = BigNum::from_slice(&hasher.finish()).unwrap();
 
-        info!("to_hash={} {}", output_hash, e);
-
         let mut m: BigNum = BigNum::new().unwrap();
         let mut ctx = BigNumContext::new().unwrap();
         let r: BigNum = BigNum::from_slice(&base64::decode(&elem.blinding).unwrap()).unwrap();
-        info!("r = {}", r);
         m.mod_exp(&r, e, n, &mut ctx).unwrap();
         let mut m_mod: BigNum = BigNum::new().unwrap();
         m_mod.mod_mul(&m, &output_hash, n, &mut ctx).unwrap();
-        info!("m = {}", m_mod);
 
-        let calculated = BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap();
-        if m_mod != calculated {
-            error!("{} != {}", m_mod, calculated);
+        let m_commited = BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap();
+        if m_mod != m_commited {
+            error!("{} != {}", m_mod, m_commited);
             return false;
         }
-        info!("Succesfully verified commitment")
     }
     true
 }
