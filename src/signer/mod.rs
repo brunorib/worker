@@ -6,7 +6,7 @@ use openssl::sign::Signer;
 use openssl::rsa::Rsa;
 use openssl::pkey::Public;
 use openssl::bn::{BigNum, BigNumContext};
-
+use log::{info, error};
 
 use crate::commons::*;
 
@@ -36,7 +36,9 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
         let mut m_mod: BigNum = BigNum::new().unwrap();
         m_mod.mod_mul(&m, &output_hash, n, &mut ctx).unwrap();
 
-        if m_mod != BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap() {
+        let calculated = BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap();
+        if m_mod != calculated {
+            error!("{} != {}", m_mod, calculated);
             return false;
         }
     }

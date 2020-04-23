@@ -17,8 +17,6 @@ fn run_connection(mut connection: Connection, keystore: &ParsedPkcs12, config: &
         match message {
             ConsumerMessage::Delivery(delivery) => {
                 let body = String::from_utf8_lossy(&delivery.body);
-                info!("Received [{}]", body);
-                
 
                 let (reply_to, corr_id) = match (
                     delivery.properties.reply_to(),
