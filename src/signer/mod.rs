@@ -32,7 +32,7 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
         let mut m: BigNum = BigNum::new().unwrap();
         let mut ctx = BigNumContext::new().unwrap();
         let r: BigNum = BigNum::from_slice(&base64::decode(&elem.blinding).unwrap()).unwrap();
-        m.exp(&r, e, &mut ctx).unwrap();
+        m.mod_exp(&r, e, n, &mut ctx).unwrap();
         let mut m_mod: BigNum = BigNum::new().unwrap();
         m_mod.mod_mul(&m, &output_hash, n, &mut ctx).unwrap();
 
