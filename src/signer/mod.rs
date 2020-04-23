@@ -27,6 +27,8 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
         let to_hash: String = elem.amount.clone() + CONCAT + &elem.id;
         hasher.update(&to_hash.as_bytes());
 
+        info!("{} {}", to_hash, e);
+
         let output_hash = BigNum::from_slice(&hasher.finish()).unwrap();
 
         let mut m: BigNum = BigNum::new().unwrap();
