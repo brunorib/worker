@@ -23,7 +23,11 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
                 info!("Commitments checked. Signing blind message...");
                 response = serde_json::to_string(&sign(&commitments.to_blind_sign, keystore)).unwrap();
             } else {
-                response = "-1".to_string();
+                response = r#"
+                            {
+                                "status": "fail",
+                                "message": "Provided answers do not match commitments"
+                            }"#.to_string();
             }
         },
         _ => return Err("Action not found".to_string()),
