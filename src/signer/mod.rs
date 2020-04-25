@@ -7,6 +7,7 @@ use openssl::rsa::Rsa;
 use openssl::sign::Verifier;
 use openssl::pkey::Public;
 use openssl::bn::{BigNum, BigNumContext};
+use openssl::rsa::Padding;
 use log::{error};
 
 use crate::commons::*;
@@ -48,6 +49,7 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
 
 pub fn sign(blinded: &String, keystore: &ParsedPkcs12) -> BlindSignature {
     let mut signer: Signer = Signer::new_without_digest(&keystore.pkey).unwrap();
+    signer.set_rsa_padding(Padding::NONE).unwrap();
     
     signer.update(&base64::decode(blinded).unwrap()).unwrap();
     BlindSignature {
