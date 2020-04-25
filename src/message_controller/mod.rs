@@ -12,13 +12,13 @@ const PAYLOAD: &str = "payload";
 
 pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, String> {
     let message_type: &str = input[ACTION].as_str().unwrap();
+    let rsa_key = keystore.cert.public_key().unwrap().rsa().unwrap();
     let response;
     match message_type {
         "checkFair" => {
             info!("Validating commitments...");
             let commitments: CommitInfoVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
             
-            let rsa_key = keystore.cert.public_key().unwrap().rsa().unwrap();
             info!("Checking commitments...");
             if check_fair(&commitments, rsa_key) {
                 info!("Commitments checked. Signing blind message...");
@@ -34,7 +34,7 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
         "verify" => {
             info!("Verifying signature...");
             let payload: SignatureVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
-            if verify_sign(&payload, keystore) {
+            if verify_sign(&payload, rsa_key) {
                 response = r#"
                 {
                     "status": "success"

@@ -2,12 +2,9 @@ extern crate base64;
 
 use openssl::sha::Sha256;
 use openssl::pkcs12::ParsedPkcs12;
-use openssl::sign::Signer;
 use openssl::rsa::Rsa;
-use openssl::sign::Verifier;
-use openssl::pkey::Public;
+use openssl::pkey::{Public, Private};
 use openssl::bn::{BigNum, BigNumContext};
-use openssl::rsa::Padding;
 use log::{error};
 
 use crate::commons::*;
@@ -33,12 +30,12 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
 
         let mut m: BigNum = BigNum::new().unwrap();
         let mut ctx = BigNumContext::new().unwrap();
-        let r: BigNum = BigNum::from_slice(&base64::decode(&elem.blinding).unwrap()).unwrap();
+        let r: BigNum = base64_to_bignum(&elem.blinding);
         m.mod_exp(&r, e, n, &mut ctx).unwrap();
         let mut m_mod: BigNum = BigNum::new().unwrap();
         m_mod.mod_mul(&m, &output_hash, n, &mut ctx).unwrap();
 
-        let m_commited = BigNum::from_slice(&base64::decode(&m_to_verify[i]).unwrap()).unwrap();
+        let m_commited = base64_to_bignum(&m_to_verify[i]);
         if m_mod != m_commited {
             error!("{} != {}", m_mod, m_commited);
             return false;
@@ -48,25 +45,45 @@ pub fn check_fair(payload: &CommitInfoVerifyPayload, p_key: Rsa<Public>) -> bool
 }
 
 pub fn sign(blinded: &String, keystore: &ParsedPkcs12) -> BlindSignature {
-    let mut signer: Signer = Signer::new_without_digest(&keystore.pkey).unwrap();
-    signer.set_rsa_padding(Padding::NONE).unwrap();
+    let blinded_message: BigNum = base64_to_bignum(blinded);
+    let private: Rsa<Private> = keystore.pkey.rsa().unwrap();
+    let d = private.d();
+    let n = private.n();
+   
+    let mut s: BigNum = BigNum::new().unwrap();
+    let mut ctx = BigNumContext::new().unwrap();
+    s.mod_exp(&blinded_message, d, n, &mut ctx).unwrap();
     
-    signer.update(&base64::decode(blinded).unwrap()).unwrap();
     BlindSignature {
-        blind_signature: base64::encode(signer.sign_to_vec().unwrap())
+        blind_signature: bignum_to_base64(s)
     }
 }
 
-pub fn verify_sign(payload: &SignatureVerifyPayload, keystore: &ParsedPkcs12) -> bool {
-    let signature = &payload.signature;
+pub fn verify_sign(payload: &SignatureVerifyPayload, public: Rsa<Public>) -> bool {
+    let signature = base64_to_bignum(&payload.signature);
     let to_hash = payload.amount.clone() + CONCAT + &payload.id;
-    let public = keystore.cert.public_key().unwrap();
-    let mut verifier = Verifier::new_without_digest(&public).unwrap();
-    
+    let e = public.e();
+    let n = public.n();
+
     let mut hasher: Sha256 = Sha256::new();
     hasher.update(&to_hash.as_bytes());
-    
-    verifier.update(&hasher.finish()).unwrap();
+    let out_hash: BigNum = BigNum::from_slice(&hasher.finish()).unwrap();
 
-    verifier.verify(&base64::decode(&signature).unwrap()).unwrap()
+    let mut s_decrypt: BigNum = BigNum::new().unwrap();
+    let mut ctx = BigNumContext::new().unwrap();
+    s_decrypt.mod_exp(&signature, e, n, &mut ctx).unwrap();
+
+    if out_hash == s_decrypt {
+        return true
+    }
+    
+    false
+}
+
+fn base64_to_bignum(base64: &String) -> BigNum {
+    BigNum::from_slice(&base64::decode(base64).unwrap()).unwrap()
+}
+
+fn bignum_to_base64(num: BigNum) -> String {
+    base64::encode(num.to_vec())
 }
