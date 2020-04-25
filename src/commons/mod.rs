@@ -14,6 +14,13 @@ pub struct CommitInfoVerifyPayload {
     pub m_commitments: Vec<String>
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SignatureVerifyPayload {
+    pub signature: String,
+    pub amount: String,
+    pub id: String
+}
+
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct BlindSignature {

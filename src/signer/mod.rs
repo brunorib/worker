@@ -4,6 +4,7 @@ use openssl::sha::Sha256;
 use openssl::pkcs12::ParsedPkcs12;
 use openssl::sign::Signer;
 use openssl::rsa::Rsa;
+use openssl::sign::Verifier;
 use openssl::pkey::Public;
 use openssl::bn::{BigNum, BigNumContext};
 use log::{error};
@@ -52,4 +53,18 @@ pub fn sign(blinded: &String, keystore: &ParsedPkcs12) -> BlindSignature {
     BlindSignature {
         blind_signature: base64::encode(signer.sign_to_vec().unwrap())
     }
+}
+
+pub fn verify_sign(payload: &SignatureVerifyPayload, keystore: &ParsedPkcs12) -> bool {
+    let signature = &payload.signature;
+    let to_hash = payload.amount.clone() + CONCAT + &payload.id;
+    let public = keystore.cert.public_key().unwrap();
+    let mut verifier = Verifier::new_without_digest(&public).unwrap();
+    
+    let mut hasher: Sha256 = Sha256::new();
+    hasher.update(&to_hash.as_bytes());
+    
+    verifier.update(&hasher.finish()).unwrap();
+
+    verifier.verify(&base64::decode(&signature).unwrap()).unwrap()
 }

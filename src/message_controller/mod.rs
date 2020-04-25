@@ -1,4 +1,5 @@
 use crate::commons::CommitInfoVerifyPayload;
+use crate::commons::SignatureVerifyPayload;
 use crate::signer::*;
 
 use openssl::pkcs12::ParsedPkcs12;
@@ -28,6 +29,22 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
                                 "status": "fail",
                                 "message": "Provided answers do not match commitments"
                             }"#.to_string();
+            }
+        },
+        "verify" => {
+            info!("Verifying signature...");
+            let payload: SignatureVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
+            if verify_sign(&payload, keystore) {
+                response = r#"
+                {
+                    "status": "success"
+                }"#.to_string();
+            } else {
+                response = r#"
+                {
+                    "status": "fail",
+                    "message": "Signature does not match message"
+                }"#.to_string();
             }
         },
         _ => return Err("Action not found".to_string()),
