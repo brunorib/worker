@@ -23,6 +23,7 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
             if check_fair(&commitments, rsa_key) {
                 info!("Commitments checked. Signing blind message...");
                 response = serde_json::to_string(&sign(&commitments.to_blind_sign, keystore)).unwrap();
+                info!("Blind message signed");
             } else {
                 response = r#"
                             {
@@ -35,11 +36,13 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
             info!("Verifying signature...");
             let payload: SignatureVerifyPayload = serde_json::from_value(input[PAYLOAD].take()).unwrap();
             if verify_sign(&payload, rsa_key) {
+                info!("Signature verfied successfully");
                 response = r#"
                 {
                     "status": "success"
                 }"#.to_string();
             } else {
+                info!("Signature failed verification");
                 response = r#"
                 {
                     "status": "fail",
@@ -50,6 +53,5 @@ pub fn handle(mut input: Value, keystore: &ParsedPkcs12) -> Result<String, Strin
         _ => return Err("Action not found".to_string()),
     }
 
-    info!("{}", response);
     Ok(response)
 }
